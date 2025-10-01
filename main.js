@@ -488,39 +488,3 @@ class ImageGenerator {
 
 // Initialize the application
 const imageGenerator = new ImageGenerator();
-
-// Add some sample data for demonstration
-function addSampleData() {
-    const sampleImages = [
-        'resources/sample-cyberpunk.jpg',
-        'resources/sample-fantasy.jpg',
-        'resources/sample-portrait.jpg',
-        'resources/sample-abstract.jpg',
-        'resources/sample-anime.jpg'
-    ];
-    
-    const sampleEntry = {
-        id: 'sample-' + Date.now(),
-        timestamp: Date.now() - 3600000, // 1 hour ago
-        prompt: 'A futuristic cityscape with neon lights and flying cars',
-        negativePrompt: 'blurry, low quality',
-        style: 'Cyberpunk',
-        model: 'Turbo',
-        cfgScale: 7,
-        numOutputs: 1,
-        resolution: '768x768',
-        seed: 'random',
-        images: sampleImages
-    };
-    
-    // Add to history if no history exists
-    if (imageGenerator.history.length === 0) {
-        imageGenerator.history.push(sampleEntry);
-        imageGenerator.saveHistory();
-    }
-}
-
-// Add sample data on first load
-if (!localStorage.getItem('raj-image-history')) {
-    addSampleData();
-}
