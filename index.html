@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAJ Image Studio - AI Image Generator</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/splitting@1.0.6/dist/splitting.css">
+    <script src="https://unpkg.com/splitting@1.0.6/dist/splitting.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    
+    <style>
+    :root {
+        --clash-display: 'Clash Display', sans-serif;
+        --manrope: 'Manrope', system-ui, sans-serif;
+        --orange-accent: #FF6B00;
+        --orange-darker: #D94E00;
+        --border-gray: #E5E7EB;
+    }
+        
+        body {
+            font-family: var(--manrope);
+            background: #FFFFFF;
+            color: #000000;
+        }
+        
+        .font-display {
+            font-family: var(--clash-display);
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, var(--orange-darker) 0%, #FFFFFF 100%);
+        }
+        .hero-bg h1,
+        .hero-bg p {
+            color: var(--orange-darker);
+        }
+        
+        .btn-primary {
+            background: var(--orange-accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            background: #E55A00;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #000;
+            border: 2px solid var(--border-gray);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--orange-accent);
+            color: var(--orange-accent);
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            font-family: var(--manrope);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--orange-accent);
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+        }
+        
+        .image-card {
+            border: 2px solid var(--border-gray);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: white;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+            border-color: var(--orange-accent);
+        }
+        
+        .model-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--orange-accent);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .preview-container {
+            min-height: 200px;
+            border: 2px dashed var(--border-gray);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #FFFFFF; /* white background for consistency */
+        }
+        
+        .generated-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: var(--orange-accent);
+        }
+        
+        .toast.error {
+            background: #DC2626; /* keep red for error states */
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid var(--orange-accent);
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--orange-accent) }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+    
+    <!-- Header -->
+    <header class="sticky top-0 bg-white border-b-2 border-gray-100 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="font-display font-bold text-2xl">
+                    RAJ Image Studio
+                </div>
+                <nav>
+                    <a href="history.html" class="btn-secondary text-sm">
+                        History
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-bg py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="font-display font-bold text-5xl md:text-6xl mb-4 text-orange-700">
+                    <span id="typed-text"></span>
+                </h1>
+                <p class="text-lg text-orange-600 max-w-2xl mx-auto">
+                    Create stunning AI-generated images with professional control and real-time preview
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            
+            <!-- Left Panel - Generation Controls -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-2xl border-2 border-gray-100 p-6">
+                    <h2 class="font-display font-semibold text-2xl mb-6">Create</h2>
+                    
+                    <!-- Prompt Input -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Your Prompt</label>
+                        <textarea 
+                            id="prompt" 
+                            class="input-field resize-none" 
+                            rows="4" 
+                            placeholder="Describe your image in detail..."
+                        ></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Be descriptive for better results</p>
+                    </div>
+                    
+                    <!-- Negative Prompt -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Negative Prompt (Optional)</label>
+                        <textarea 
+                            id="negativePrompt" 
+                            class="input-field resize-none" 
+                            rows="2" 
+                            placeholder="What to avoid in the image..."
+                        ></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Elements you don't want to see</p>
+                    </div>
+                    
+                    <!-- Style Selection -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Style</label>
+                        <select id="style" class="input-field">
+                            <option value="General">General</option>
+                            <option value="Photorealistic">Photorealistic</option>
+                            <option value="Anime">Anime</option>
+                            <option value="Fantasy Art">Fantasy Art</option>
+                            <option value="Abstract">Abstract</option>
+                            <option value="Cyberpunk">Cyberpunk</option>
+                            <option value="Oil Painting">Oil Painting</option>
+                            <option value="Pixel Art">Pixel Art</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Model Selection -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold mb-2">Model</label>
+                        <select id="model" class="input-field">
+                            <option value="Turbo"><span class="model-icon">⚡</span>Turbo - Balanced speed/quality</option>
+                            <option value="Flux"><span class="model-icon">🌀</span>Flux - Creative abstraction</option>
+                            <option value="Kontext"><span class="model-icon">🖼️</span>Kontext - Scene coherence</option>
+                            <option value="Photon"><span class="model-icon">🚀</span>Photon - Ultra-fast previews</option>
+                            <option value="Aurora"><span class="model-icon">🌌</span>Aurora - Cosmic/fantasy art</option>
+                            <option value="Vivid"><span class="model-icon">📸</span>Vivid - Photorealistic output</option>
+                            <option value="MangaFX"><span class="model-icon">🇯🇵</span>MangaFX - Anime/manga style</option>
+                            <option value="Claymation"><span class="model-icon">🧵</span>Claymation - Stop-motion animation</option>
+                            <option value="Cyberpunk"><span class="model-icon">🌃</span>Cyberpunk - Neon-noir/cyberpunk</option>
+                            <option value="OilMaster"><span class="model-icon">🎨</span>OilMaster - Traditional oil painting</option>
+                            <option value="PixelGen"><span class="model-icon">👾</span>PixelGen - 8-bit/16-bit pixel art</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Advanced Settings Toggle -->
+                    <div class="mb-6">
+                        <button id="advancedToggle" class="btn-secondary text-sm w-full">
+                            Advanced Settings ▼
+                        </button>
+                        <div id="advancedSettings" class="hidden mt-4 space-y-4">
+                            <!-- CFG Scale -->
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">CFG Scale: <span id="cfgValue">7</span></label>
+                                <input type="range" id="cfgScale" min="1" max="24" value="7" class="w-full">
+                                <p class="text-xs text-gray-500">Higher values = stricter prompt adherence</p>
+                            </div>
+                            
+                            <!-- Number of Outputs -->
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Number of Images</label>
+                                <select id="numOutputs" class="input-field">
+                                    <option value="1">1 Image</option>
+                                    <option value="2">2 Images</option>
+                                    <option value="3">3 Images</option>
+                                    <option value="4">4 Images</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Resolution -->
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Resolution</label>
+                                <select id="resolution" class="input-field">
+                                    <option value="512x512">512x512 (Small)</option>
+                                    <option value="768x768">768x768 (Medium)</option>
+                                    <option value="1024x1024">1024x1024 (Large)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Seed -->
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">Seed</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="seed" class="input-field flex-1" placeholder="random">
+                                    <button id="randomSeed" class="btn-secondary text-sm">Random</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Generate Button -->
+                    <button id="generateBtn" class="btn-primary w-full text-lg">
+                        <span id="generateText">Generate Images</span>
+                        <div id="generateLoader" class="loading-spinner hidden inline-block ml-2"></div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Results -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Real-time Preview -->
+                <div class="bg-white rounded-2xl border-2 border-gray-100 p-6">
+                    <h3 class="font-display font-semibold text-xl mb-4">Real-time Preview</h3>
+                    <div id="previewContainer" class="preview-container">
+                        <div class="text-center text-gray-500">
+                            <p>Start typing to see preview</p>
+                            <p class="text-sm">Uses Photon model for fast preview</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generated Images -->
+                <div class="bg-white rounded-2xl border-2 border-gray-100 p-6">
+                    <h3 class="font-display font-semibold text-xl mb-4">Your Creations</h3>
+                    <div id="resultsContainer">
+                        <div class="text-center text-gray-500 py-12">
+                            <p class="text-lg mb-2">Let's create something amazing</p>
+                            <p>Your generated images will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Image Editor Modal -->
+    <div id="editorModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-display font-semibold text-xl">Edit Image</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="editorContent">
+                <!-- Image editor content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 border-t-2 border-gray-100 py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-600 text-sm">
+                © 2025 RAJ Image Studio. Personal use only. 
+                <span class="text-orange-600 font-semibold">Not for commercial redistribution.</span>
+            </p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "raj-image-studio",
+  "version": "1.0.0",
+  "description": "Static web app for AI image generation using Pollinations API",
+  "scripts": {
+    "dev": "npx serve -s . -l 3000"
+  },
+  "author": "RAJ",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

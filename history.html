@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - RAJ Image Studio</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <style>
+        :root {
+            --clash-display: 'Clash Display', sans-serif;
+            --manrope: 'Manrope', system-ui, sans-serif;
+            --orange-accent: #FF6B00;
+            --border-gray: #E5E7EB;
+        }
+        
+        body {
+            font-family: var(--manrope);
+            background: #FFFFFF;
+            color: #000000;
+        }
+        
+        .font-display {
+            font-family: var(--clash-display);
+        }
+        
+        .btn-primary {
+            background: var(--orange-accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            background: #E55A00;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #000;
+            border: 2px solid var(--border-gray);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--orange-accent);
+            color: var(--orange-accent);
+        }
+        
+        .btn-danger {
+            background: #DC2626;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-danger:hover {
+            background: #B91C1C;
+            transform: translateY(-1px);
+        }
+        
+        .history-card {
+            border: 2px solid var(--border-gray);
+            border-radius: 12px;
+            padding: 20px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .history-card:hover {
+            border-color: var(--orange-accent);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .history-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-gray);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: var(--orange-accent);
+        }
+        
+        .toast.error {
+            background: #DC2626;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+        
+        .model-icon {
+            font-size: 1.2em;
+            margin-right: 4px;
+        }
+        
+        .timestamp {
+            color: #6B7280;
+            font-size: 14px;
+        }
+        
+        .prompt-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+    
+    <!-- Header -->
+    <header class="sticky top-0 bg-white border-b-2 border-gray-100 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="font-display font-bold text-2xl">
+                    <a href="index.html">RAJ Image Studio</a>
+                </div>
+                <nav>
+                    <a href="index.html" class="btn-secondary text-sm">
+                        Back to Generator
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="font-display font-bold text-4xl mb-4">Generation History</h1>
+            <p class="text-lg text-gray-600">View and manage your previous image generations</p>
+        </div>
+        
+        <!-- History Controls -->
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex gap-4">
+                <button id="exportHistory" class="btn-secondary">
+                    Export History
+                </button>
+                <button id="importHistory" class="btn-secondary">
+                    Import History
+                </button>
+                <input type="file" id="importFile" accept=".json" class="hidden">
+            </div>
+            <div class="flex gap-4">
+                <span id="historyCount" class="text-gray-600">0 generations</span>
+                <button id="clearAll" class="btn-danger">
+                    Clear All
+                </button>
+            </div>
+        </div>
+        
+        <!-- History Grid -->
+        <div id="historyContainer">
+            <div class="empty-state">
+                <div class="text-6xl mb-4">🎨</div>
+                <h3 class="font-display font-semibold text-2xl mb-2">No generations yet</h3>
+                <p class="mb-6">Start creating amazing images to see your history here</p>
+                <a href="index.html" class="btn-primary">
+                    Create Your First Image
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4">
+            <h3 class="font-display font-semibold text-2xl mb-4">Confirm Deletion</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to delete this generation? This action cannot be undone.</p>
+            <div class="flex gap-4">
+                <button id="cancelDelete" class="btn-secondary flex-1">Cancel</button>
+                <button id="confirmDelete" class="btn-danger flex-1">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 border-t-2 border-gray-100 py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-600 text-sm">
+                © 2025 RAJ Image Studio. Personal use only. 
+                <span class="text-orange-600 font-semibold">Not for commercial redistribution.</span>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // History management functionality
+        class HistoryManager {
+            constructor() {
+                this.history = this.loadHistory();
+                this.currentDeleteId = null;
+                this.init();
+            }
+            
+            init() {
+                this.renderHistory();
+                this.bindEvents();
+                this.updateCount();
+            }
+            
+            loadHistory() {
+                try {
+                    const stored = localStorage.getItem('raj-image-history');
+                    return stored ? JSON.parse(stored) : [];
+                } catch (error) {
+                    console.error('Error loading history:', error);
+                    return [];
+                }
+            }
+            
+            saveHistory() {
+                try {
+                    localStorage.setItem('raj-image-history', JSON.stringify(this.history));
+                } catch (error) {
+                    console.error('Error saving history:', error);
+                    this.showToast('Error saving history', 'error');
+                }
+            }
+            
+            renderHistory() {
+                const container = document.getElementById('historyContainer');
+                
+                if (this.history.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="text-6xl mb-4">🎨</div>
+                            <h3 class="font-display font-semibold text-2xl mb-2">No generations yet</h3>
+                            <p class="mb-6">Start creating amazing images to see your history here</p>
+                            <a href="index.html" class="btn-primary">
+                                Create Your First Image
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const historyHTML = this.history.map(entry => `
+                    <div class="history-card mb-6" data-id="${entry.id}">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <h3 class="font-display font-semibold text-lg mb-2 prompt-text">${entry.prompt}</h3>
+                                <div class="flex flex-wrap gap-2 text-sm text-gray-600 mb-2">
+                                    <span class="model-icon">${this.getModelIcon(entry.model)}</span>
+                                    <span>${entry.model}</span>
+                                    <span>•</span>
+                                    <span>${entry.style}</span>
+                                    <span>•</span>
+                                    <span>${entry.resolution}</span>
+                                    <span>•</span>
+                                    <span>${entry.numOutputs} image${entry.numOutputs > 1 ? 's' : ''}</span>
+                                </div>
+                                <div class="timestamp">${this.formatTimestamp(entry.timestamp)}</div>
+                            </div>
+                            <div class="flex gap-2 ml-4">
+                                <button onclick="historyManager.reloadPrompt('${entry.id}')" class="btn-secondary text-sm">
+                                    Use Again
+                                </button>
+                                <button onclick="historyManager.deleteEntry('${entry.id}')" class="btn-danger text-sm">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                        
+                        ${entry.images ? `
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                ${entry.images.map(img => `
+                                    <img src="${img}" alt="Generated image" class="history-image">
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+                
+                container.innerHTML = historyHTML;
+            }
+            
+            getModelIcon(model) {
+                const icons = {
+                    'Turbo': '⚡',
+                    'Flux': '🌀',
+                    'Kontext': '🖼️',
+                    'Photon': '🚀',
+                    'Aurora': '🌌',
+                    'Vivid': '📸',
+                    'MangaFX': '🇯🇵',
+                    'Claymation': '🧵',
+                    'Cyberpunk': '🌃',
+                    'OilMaster': '🎨',
+                    'PixelGen': '👾'
+                };
+                return icons[model] || '🎨';
+            }
+            
+            formatTimestamp(timestamp) {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                
+                return date.toLocaleDateString();
+            }
+            
+            updateCount() {
+                const countEl = document.getElementById('historyCount');
+                countEl.textContent = `${this.history.length} generation${this.history.length !== 1 ? 's' : ''}`;
+            }
+            
+            reloadPrompt(entryId) {
+                const entry = this.history.find(e => e.id === entryId);
+                if (!entry) return;
+                
+                // Store the prompt data to pass to the main page
+                sessionStorage.setItem('reloadPrompt', JSON.stringify(entry));
+                window.location.href = 'index.html';
+            }
+            
+            deleteEntry(entryId) {
+                this.currentDeleteId = entryId;
+                document.getElementById('confirmModal').classList.remove('hidden');
+                document.getElementById('confirmModal').classList.add('flex');
+            }
+            
+            confirmDelete() {
+                if (!this.currentDeleteId) return;
+                
+                this.history = this.history.filter(entry => entry.id !== this.currentDeleteId);
+                this.saveHistory();
+                this.renderHistory();
+                this.updateCount();
+                this.showToast('Generation deleted', 'success');
+                this.closeModal();
+            }
+            
+            closeModal() {
+                document.getElementById('confirmModal').classList.add('hidden');
+                document.getElementById('confirmModal').classList.remove('flex');
+                this.currentDeleteId = null;
+            }
+            
+            clearAll() {
+                if (confirm('Are you sure you want to clear all history? This cannot be undone.')) {
+                    this.history = [];
+                    this.saveHistory();
+                    this.renderHistory();
+                    this.updateCount();
+                    this.showToast('All history cleared', 'success');
+                }
+            }
+            
+            exportHistory() {
+                const dataStr = JSON.stringify(this.history, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `raj-image-history-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                this.showToast('History exported', 'success');
+            }
+            
+            importHistory(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        if (Array.isArray(imported)) {
+                            this.history = [...this.history, ...imported];
+                            this.saveHistory();
+                            this.renderHistory();
+                            this.updateCount();
+                            this.showToast('History imported', 'success');
+                        } else {
+                            throw new Error('Invalid format');
+                        }
+                    } catch (error) {
+                        this.showToast('Invalid file format', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+            
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+            
+            bindEvents() {
+                // Clear all button
+                document.getElementById('clearAll').addEventListener('click', () => this.clearAll());
+                
+                // Export history
+                document.getElementById('exportHistory').addEventListener('click', () => this.exportHistory());
+                
+                // Import history
+                document.getElementById('importHistory').addEventListener('click', () => {
+                    document.getElementById('importFile').click();
+                });
+                
+                document.getElementById('importFile').addEventListener('change', (e) => {
+                    if (e.target.files[0]) {
+                        this.importHistory(e.target.files[0]);
+                    }
+                });
+                
+                // Modal events
+                document.getElementById('cancelDelete').addEventListener('click', () => this.closeModal());
+                document.getElementById('confirmDelete').addEventListener('click', () => this.confirmDelete());
+                document.getElementById('confirmModal').addEventListener('click', (e) => {
+                    if (e.target === e.currentTarget) this.closeModal();
+                });
+            }
+        }
+        
+        // Initialize history manager
+        const historyManager = new HistoryManager();
+    </script>
+</body>
+</html>
