@@ -152,6 +152,20 @@
             overflow: hidden;
             word-break: break-word;
         }
+         /* ---------- deeper borders ---------- */
+        :root {
+            --border-gray-deep: #9CA3AF;   /* 500 – deeper */
+            --border-gray-focus: #6B7280;  /* 600 – hover */
+        }
+        .history-card {
+            border-color: var(--border-gray-deep);
+        }
+        .history-card:hover {
+            border-color: var(--orange-accent);
+        }
+        .history-image {
+            border-color: var(--border-gray-deep);
+        }
     </style>
 </head>
 <body>
